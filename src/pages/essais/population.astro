@@ -1,0 +1,78 @@
+---
+import Layout from "../../layouts/Layout.astro";
+---
+
+<Layout>
+  <h1>Analyse de la Population</h1>
+
+  <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+    <div>
+      <label for="sex">Sexe :</label>
+      <select id="sex">
+        <option value="">Tous</option>
+        <option value="1">Hommes (1)</option>
+        <option value="2">Femmes (2)</option>
+      </select>
+    </div>
+
+    <div>
+      <label for="age">Âge :</label>
+      <select id="age">
+        <option value="">Tous les âges</option>
+        <option value="0">0 ans</option>
+        <option value="10">10 ans</option>
+        <option value="20">20 ans</option>
+        <option value="30">30 ans</option>
+        <option value="40">40 ans</option>
+        <option value="50">50 ans</option>
+      </select>
+    </div>
+  </div>
+
+  <div id="myplot"></div>
+</Layout>
+
+<script>
+  import * as Plot from "@observablehq/plot";
+  import population from "../../assets/population.json";
+
+  const selectSex = document.querySelector("#sex") as HTMLSelectElement | null;
+  const selectAge = document.querySelector("#age") as HTMLSelectElement | null;
+  const container = document.querySelector("#myplot");
+
+  function renderPlot() {
+    if (!container || !selectSex || !selectAge) return;
+
+    const sex = selectSex.value;
+    const age = selectAge.value;
+
+    container.innerHTML = "";
+
+    // Filtrage avec typage dynamique (any) pour éviter l'erreur TypeScript
+    const filteredData = population.filter((d: any) => {
+      const matchSex = !sex || String(d.sex) === sex;
+      const matchAge = !age || String(d.age) === age;
+      return matchSex && matchAge;
+    });
+
+    const plot = Plot.plot({
+      marks: [
+        Plot.dot(filteredData, {
+          x: "year",
+          y: "people",
+          stroke: "sex",
+          // Affichage au survol de la souris
+          title: (d: any) => `Année : ${d.year}\nÂge : ${d.age} ans\nSexe : ${d.sex === 1 ? 'Homme' : 'Femme'}\nPopulation : ${d.people.toLocaleString()}`,
+          tip: true
+        })
+      ]
+    });
+
+    container.append(plot);
+  }
+
+  selectSex?.addEventListener("change", renderPlot);
+  selectAge?.addEventListener("change", renderPlot);
+
+  renderPlot();
+</script>

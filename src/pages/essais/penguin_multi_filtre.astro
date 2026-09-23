@@ -1,0 +1,85 @@
+---
+import Layout from "../../layouts/Layout.astro";
+---
+
+<Layout>
+  <h1>Penguin avec plusieurs filtres</h1>
+
+  <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+    <div>
+      <label for="species">Espèce :</label>
+      <select id="species">
+        <option value="">Toutes les espèces</option>
+        <option value="Adelie">Adelie</option>
+        <option value="Chinstrap">Chinstrap</option>
+        <option value="Gentoo">Gentoo</option>
+      </select>
+    </div>
+
+    <div>
+      <label for="island">Île :</label>
+      <select id="island">
+        <option value="">Toutes les îles</option>
+        <option value="Biscoe">Biscoe</option>
+        <option value="Dream">Dream</option>
+        <option value="Torgersen">Torgersen</option>
+      </select>
+    </div>
+
+    <div>
+      <label for="sex">Sexe :</label>
+      <select id="sex">
+        <option value="">Tous les sexes</option>
+        <option value="MALE">MALE</option>
+        <option value="FEMALE">FEMALE</option>
+      </select>
+    </div>
+  </div>
+
+  <div id="myplot"></div>
+</Layout>
+
+<script>
+  import * as Plot from "@observablehq/plot";
+  import penguins from "../../assets/penguins.json";
+
+  const selectSpecies = document.querySelector("#species") as HTMLSelectElement | null;
+  const selectIsland = document.querySelector("#island") as HTMLSelectElement | null;
+  const selectSex = document.querySelector("#sex") as HTMLSelectElement | null;
+  const container = document.querySelector("#myplot");
+
+  function renderPlot() {
+    if (!container || !selectSpecies || !selectIsland || !selectSex) return;
+
+    const species = selectSpecies.value;
+    const island = selectIsland.value;
+    const sex = selectSex.value;
+
+    container.innerHTML = "";
+
+    const filteredPenguins = penguins.filter((d) => {
+      const matchSpecies = !species || d.species === species;
+      const matchIsland = !island || d.island === island;
+      const matchSex = !sex || d.sex === sex;
+      return matchSpecies && matchIsland && matchSex;
+    });
+
+    const plot = Plot.plot({
+      marks: [
+        Plot.dot(filteredPenguins, {
+          x: "culmen_length_mm",
+          y: "culmen_depth_mm",
+          stroke: "species"
+        })
+      ]
+    });
+
+    container.append(plot);
+  }
+
+  selectSpecies?.addEventListener("change", renderPlot);
+  selectIsland?.addEventListener("change", renderPlot);
+  selectSex?.addEventListener("change", renderPlot);
+
+  renderPlot();
+</script>

@@ -1,0 +1,72 @@
+---
+import Layout from "../../layouts/Layout.astro";
+---
+
+<Layout>
+  <h1>Analyse du jeu de données Cars</h1>
+
+  <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+    <div>
+      <label for="origin">Origine :</label>
+      <select id="origin">
+        <option value="">Toutes</option>
+        <option value="USA">USA</option>
+        <option value="Europe">Europe</option>
+        <option value="Japan">Japan</option>
+      </select>
+    </div>
+
+    <div>
+      <label for="cylinders">Cylindres :</label>
+      <select id="cylinders">
+        <option value="">Tous</option>
+        <option value="4">4</option>
+        <option value="6">6</option>
+        <option value="8">8</option>
+      </select>
+    </div>
+  </div>
+
+  <div id="myplot"></div>
+</Layout>
+
+<script>
+  import * as Plot from "@observablehq/plot";
+  import cars from "../../assets/cars.json";
+
+  const selectOrigin = document.querySelector("#origin") as HTMLSelectElement | null;
+  const selectCylinders = document.querySelector("#cylinders") as HTMLSelectElement | null;
+  const container = document.querySelector("#myplot");
+
+  function renderPlot() {
+    if (!container || !selectOrigin || !selectCylinders) return;
+
+    const origin = selectOrigin.value;
+    const cylinders = selectCylinders.value;
+
+    container.innerHTML = "";
+
+    const filteredCars = cars.filter((d) => {
+      const matchOrigin = !origin || d.Origin === origin;
+      const matchCylinders = !cylinders || String(d.Cylinders) === cylinders;
+      return matchOrigin && matchCylinders;
+    });
+
+    const plot = Plot.plot({
+      marks: [
+        Plot.dot(filteredCars, {
+          x: "Horsepower",
+          y: "Miles_per_Gallon",
+          stroke: "Origin"
+        })
+      ]
+    });
+
+    container.append(plot);
+  }
+
+  selectOrigin?.addEventListener("change", renderPlot);
+  selectCylinders?.addEventListener("change", renderPlot);
+
+  renderPlot();
+</script>
